@@ -6,6 +6,9 @@ import { v4 as uuidv4 } from "uuid";
 import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
 import { YoutubeTranscript } from "youtube-transcript";
+import FirecrawlApp from "@mendable/firecrawl-js";
+
+const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
 
 export async function POST(req: Request) {
   try {
@@ -30,23 +33,39 @@ export async function POST(req: Request) {
 
     // Attempt to fetch transcript
     let transcriptText = "";
+    let isFallback = false;
+    
     try {
-      // Use video ID directly for more reliability
       const transcriptOpts = await YoutubeTranscript.fetchTranscript(videoId);
       transcriptText = transcriptOpts.map((t) => t.text).join(" ");
     } catch (e: any) {
-      console.log("Could not fetch transcript:", e.message);
-      return new NextResponse("Could not fetch transcript. The video might be private, unavailable, or have captions disabled.", { status: 400 });
+      console.log("Transcript unavailable, attempting fallback via Firecrawl:", e.message);
+      
+      try {
+        // Fallback: Scrape the YouTube page for the description/metadata
+        const scrapeResult = await firecrawl.scrape(videoUrl, {
+          formats: ['markdown']
+        }) as any;
+
+        if (scrapeResult.success && scrapeResult.markdown) {
+          transcriptText = scrapeResult.markdown;
+          isFallback = true;
+        }
+      } catch (scrapeError: any) {
+        console.error("Firecrawl fallback failed:", scrapeError.message);
+      }
     }
 
     if (!transcriptText || transcriptText.trim().length === 0) {
-       return new NextResponse("No transcript found for this video. Please try a video with English captions enabled.", { status: 400 });
+       return new NextResponse("Could not obtain content (transcript or description) for this video. It might be private or unavailable.", { status: 400 });
     }
 
     // Call Gemini to Summarize
     const { text: summaryText } = await generateText({
       model: google("gemini-1.5-flash"),
-      prompt: `Summarize the following YouTube video transcript in a concise, well-structured manner with bullet points. Focus on the main ideas and actionable takeaways.\n\nTranscript: ${transcriptText.substring(0, 20000)}`, // increased limit slightly
+      prompt: isFallback 
+        ? `The following is a markdown scrape of a YouTube video page (including title and description metadata). Based STRICTLY on this metadata, provide a concise summary of what the video is about and any key takeaways listed in the description. Note that this is based on metadata, not a transcript.\n\nContent:\n${transcriptText.substring(0, 15000)}`
+        : `Summarize the following YouTube video transcript in a concise, well-structured manner with bullet points. Focus on the main ideas and actionable takeaways.\n\nTranscript: ${transcriptText.substring(0, 20000)}`,
     });
 
     const newSummaryId = uuidv4();
