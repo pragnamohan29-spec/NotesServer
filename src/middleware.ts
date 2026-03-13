@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-
+// Middleware configuration for Clerk Authentication
+// Deployment Version: 1.0.1
 const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
