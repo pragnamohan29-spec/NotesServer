@@ -10,7 +10,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
               <span className="font-bold text-xl text-neutral-900 tracking-tight">
-                NotesSaver<span className="text-blue-600">.</span>
+                NotesServer<span className="text-blue-600">.</span>
               </span>
             </Link>
             <nav className="hidden md:flex gap-6">

@@ -37,9 +37,9 @@ export default function Home() {
       {/* Navbar */}
       <header className="fixed top-0 w-full z-50 border-b border-white/10 bg-black/40 backdrop-blur-md">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="font-bold text-xl flex items-center gap-2">
-            NotesSaver<span className="text-blue-500 h-2 w-2 rounded-full bg-blue-500 inline-block" />
-          </div>
+          <Link href="/" className="text-2xl font-bold flex items-center gap-1 group">
+            NotesServer<span className="text-blue-500 h-2 w-2 rounded-full bg-blue-500 inline-block" />
+          </Link>
           <div className="flex gap-4">
             {isSignedIn ? (
                <Link href="/dashboard">

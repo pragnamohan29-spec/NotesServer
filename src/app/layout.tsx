@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Notes Saver App",
+  title: "NotesServer",
   description: "AI-powered notes and searching tool",
 };
 
