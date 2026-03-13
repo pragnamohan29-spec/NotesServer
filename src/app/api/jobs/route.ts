@@ -29,9 +29,16 @@ export async function POST(req: Request) {
       scrapeOptions: { formats: ['markdown'] }
     }) as any;
 
-    if (!searchResult || !Array.isArray(searchResult.data)) {
-       console.error("Firecrawl Error or Empty Response:", searchResult);
-       return new NextResponse("Failed to fetch jobs or no results found.", { status: 500 });
+    if (!searchResult || !Array.isArray(searchResult.data) || searchResult.data.length === 0) {
+       console.log("No jobs found via Firecrawl for:", query);
+       const searchId = uuidv4();
+       await db.insert(jobSearches).values({
+         id: searchId,
+         userId,
+         query,
+         resultsData: JSON.stringify([]),
+       });
+       return NextResponse.json({ id: searchId, results: [] }, { status: 201 });
     }
 
     // Gather concatenated markdown text from the top results
