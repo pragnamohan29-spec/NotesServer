@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { jobSearches } from "@/db/schema";
 import { v4 as uuidv4 } from "uuid";
@@ -11,7 +11,7 @@ const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
 
 export async function POST(req: Request) {
   try {
-    const { userId } = getAuth(req as any);
+    const { userId } = await auth();
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
@@ -29,9 +29,9 @@ export async function POST(req: Request) {
       scrapeOptions: { formats: ['markdown'] }
     }) as any;
 
-    if (!searchResult.data) {
-       console.error("Firecrawl Error:", searchResult);
-       return new NextResponse("Failed to fetch jobs.", { status: 500 });
+    if (!searchResult || !Array.isArray(searchResult.data)) {
+       console.error("Firecrawl Error or Empty Response:", searchResult);
+       return new NextResponse("Failed to fetch jobs or no results found.", { status: 500 });
     }
 
     // Gather concatenated markdown text from the top results
@@ -89,7 +89,7 @@ ${combinedMarkdown.substring(0, 15000)}`,
 
 export async function GET(req: Request) {
   try {
-    const { userId } = getAuth(req as any);
+    const { userId } = await auth();
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }

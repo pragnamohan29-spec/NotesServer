@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { youtubeSummaries } from "@/db/schema";
 import { v4 as uuidv4 } from "uuid";
@@ -9,7 +9,7 @@ import { YoutubeTranscript } from "youtube-transcript";
 
 export async function POST(req: Request) {
   try {
-    const { userId } = getAuth(req as any);
+    const { userId } = await auth();
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const { userId } = getAuth(req as any);
+    const { userId } = await auth();
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
