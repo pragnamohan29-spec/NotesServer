@@ -16,23 +16,31 @@ export async function POST(req: Request) {
 
     const { videoUrl } = await req.json();
 
-    const isYoutubeUrl = videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be");
-    if (!videoUrl || !isYoutubeUrl) {
-      return new NextResponse("Valid YouTube URL is required", { status: 400 });
+    // Extract video ID for better compatibility
+    const getYouTubeID = (url: string) => {
+      const regl = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+      const match = url.match(regl);
+      return match?.[1];
+    };
+
+    const videoId = getYouTubeID(videoUrl);
+    if (!videoId) {
+      return new NextResponse("Could not extract a valid YouTube video ID.", { status: 400 });
     }
 
     // Attempt to fetch transcript
     let transcriptText = "";
     try {
-      const transcriptOpts = await YoutubeTranscript.fetchTranscript(videoUrl);
+      // Use video ID directly for more reliability
+      const transcriptOpts = await YoutubeTranscript.fetchTranscript(videoId);
       transcriptText = transcriptOpts.map((t) => t.text).join(" ");
     } catch (e: any) {
       console.log("Could not fetch transcript:", e.message);
-      return new NextResponse("Could not fetch transcript for this video. Make sure it has captions enabled.", { status: 400 });
+      return new NextResponse("Could not fetch transcript. The video might be private, unavailable, or have captions disabled.", { status: 400 });
     }
 
-    if (!transcriptText) {
-       return new NextResponse("Empty transcript obtained.", { status: 400 });
+    if (!transcriptText || transcriptText.trim().length === 0) {
+       return new NextResponse("No transcript found for this video. Please try a video with English captions enabled.", { status: 400 });
     }
 
     // Call Gemini to Summarize
