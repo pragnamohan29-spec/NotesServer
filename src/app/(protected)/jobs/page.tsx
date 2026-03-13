@@ -168,18 +168,28 @@ export default function JobSearchPage() {
                            <CardContent className="pb-4 flex-1">
                               <p className="text-sm text-neutral-600 line-clamp-3">{job.summary}</p>
                            </CardContent>
-                           <CardFooter className="pt-0 pb-4">
+                           <CardFooter className="pt-0 pb-4 flex gap-2">
                               <a 
                                 href={job.url !== '#' ? job.url : undefined} 
                                 target="_blank" 
-                                className={`w-full flex items-center justify-center gap-2 text-sm font-medium h-9 rounded-md transition-colors ${job.url && job.url !== '#' ? 'bg-neutral-900 text-white hover:bg-neutral-800' : 'bg-neutral-100 text-neutral-400 cursor-not-allowed'}`}
+                                className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium h-9 rounded-md transition-colors ${job.url && job.url !== '#' ? 'bg-neutral-900 text-white hover:bg-neutral-800' : 'bg-neutral-100 text-neutral-400 cursor-not-allowed'}`}
                               >
                                 {job.url && job.url !== '#' ? (
-                                  <>Apply / View <ExternalLink className="w-3.5 h-3.5" /></>
+                                  <>Apply <ExternalLink className="w-3.5 h-3.5" /></>
                                 ) : (
-                                  'Link Unavailable'
+                                  'No Link'
                                 )}
                               </a>
+                              {job.location && (
+                                <a
+                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.company + ' ' + job.location)}`}
+                                  target="_blank"
+                                  className="flex items-center justify-center px-3 h-9 rounded-md border border-neutral-200 hover:bg-neutral-50 transition-colors text-neutral-600"
+                                  title="View on Google Maps"
+                                >
+                                  <MapPin className="w-4 h-4" />
+                                </a>
+                              )}
                            </CardFooter>
                         </Card>
                       ))}
