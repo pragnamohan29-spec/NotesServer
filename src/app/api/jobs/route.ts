@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
     // Use Gemini to structure the messy markdown into clean JSON job objects
     const { text: structuredJobsJson } = await generateText({
-      model: google("gemini-2.5-flash"),
+      model: google("gemini-1.5-flash"),
       prompt: `Extract job postings from the following scraped search results.
 Return ONLY a valid JSON array of objects with the following schema:
 [

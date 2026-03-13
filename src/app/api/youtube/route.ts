@@ -16,7 +16,8 @@ export async function POST(req: Request) {
 
     const { videoUrl } = await req.json();
 
-    if (!videoUrl || !videoUrl.includes("youtube.com")) {
+    const isYoutubeUrl = videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be");
+    if (!videoUrl || !isYoutubeUrl) {
       return new NextResponse("Valid YouTube URL is required", { status: 400 });
     }
 
@@ -36,8 +37,8 @@ export async function POST(req: Request) {
 
     // Call Gemini to Summarize
     const { text: summaryText } = await generateText({
-      model: google("gemini-2.5-flash"),
-      prompt: `Summarize the following YouTube video transcript in a concise, well-structured manner with bullet points. Focus on the main ideas and actionable takeaways.\n\nTranscript: ${transcriptText.substring(0, 15000)}`, // limit chars to avoid token limit
+      model: google("gemini-1.5-flash"),
+      prompt: `Summarize the following YouTube video transcript in a concise, well-structured manner with bullet points. Focus on the main ideas and actionable takeaways.\n\nTranscript: ${transcriptText.substring(0, 20000)}`, // increased limit slightly
     });
 
     const newSummaryId = uuidv4();
