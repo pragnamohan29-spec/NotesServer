@@ -5,7 +5,12 @@ import { jobSearches } from "@/db/schema";
 import { v4 as uuidv4 } from "uuid";
 import FirecrawlApp from "@mendable/firecrawl-js";
 import { generateText } from "ai";
-import { google } from "@ai-sdk/google";
+import { createOpenAI } from "@ai-sdk/openai";
+
+const openrouter = createOpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
 
@@ -46,9 +51,9 @@ export async function POST(req: Request) {
       .map((d: any) => `Source: ${d.url}\n\n${d.markdown?.substring(0, 3000) || d.title}`)
       .join("\n\n---\n\n");
 
-    // Use Gemini to structure the messy markdown into clean JSON job objects
+    // Use AI to structure the messy markdown into clean JSON job objects
     const { text: structuredJobsJson } = await generateText({
-      model: google("gemini-1.5-flash"),
+      model: openrouter("google/gemini-1.5-flash"),
       prompt: `Extract job postings from the following scraped search results.
 Return ONLY a valid JSON array of objects with the following schema:
 [

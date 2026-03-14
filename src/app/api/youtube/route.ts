@@ -4,9 +4,14 @@ import { db } from "@/db";
 import { youtubeSummaries } from "@/db/schema";
 import { v4 as uuidv4 } from "uuid";
 import { generateText } from "ai";
-import { google } from "@ai-sdk/google";
+import { createOpenAI } from "@ai-sdk/openai";
 import { YoutubeTranscript } from "youtube-transcript";
 import FirecrawlApp from "@mendable/firecrawl-js";
+
+const openrouter = createOpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
 
@@ -60,9 +65,9 @@ export async function POST(req: Request) {
        return new NextResponse("Could not obtain content (transcript or description) for this video. It might be private or unavailable.", { status: 400 });
     }
 
-    // Call Gemini to Summarize
+    // Call AI to Summarize
     const { text: summaryText } = await generateText({
-      model: google("gemini-1.5-flash"),
+      model: openrouter("google/gemini-1.5-flash"),
       prompt: isFallback 
         ? `The following is a markdown scrape of a YouTube video page (including title and description metadata). Based STRICTLY on this metadata, provide a concise summary of what the video is about and any key takeaways listed in the description. Note that this is based on metadata, not a transcript.\n\nContent:\n${transcriptText.substring(0, 15000)}`
         : `Summarize the following YouTube video transcript in a concise, well-structured manner with bullet points. Focus on the main ideas and actionable takeaways.\n\nTranscript: ${transcriptText.substring(0, 20000)}`,
